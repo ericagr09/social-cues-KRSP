@@ -1,0 +1,54 @@
+---
+title: "food_analysis1"
+author: "Erica Griffin"
+date: "2025-01-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Analysis to be conducted: 
+#### All long-term data from KL/SU and AG/LL/JO to assess impacts of food (previous year tree cones, feeder bucket access) on co-variance between litter size and offspring growth. Fixed effects include access to bucket (yes or no), conestm-1, local density, female age, female age^2, local density x conestm1, local density x bucket access. Random effects: Grid/Year/Female/Litter. 
+
+```{r prep}
+library(lme4)
+litter <- read.csv("~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis.csv")
+```
+
+First, I want to start by running models that assess offspring growth and litter size independetly of each other, rather than looking at the covariance between the two. 
+
+```{r growth}
+growth_model <- lmer(std_Growt ~ 
+              bucket + cones_tm1 + spr_density + age + I(age^2) + 
+              spr_density*cones_tm1 + spr_density*bucket + 
+              (1 | grid) + (1 | year) + (1 | squirrel_id), 
+             data = litter)
+summary(growth_model)
+```
+
+```{r size}
+size_model <- lmer(std_LS ~ 
+                bucket + cones_tm1 + spr_density + age + I(age^2) + 
+                spr_density*cones_tm1 + spr_density*bucket + 
+                (1 | grid) + (1 | year) + (1 | squirrel_id), # need to add in litter_id once I fix the errors 
+              data = litter)
+summary(size_model)
+```
+
+Now, using a  model to look at the effect on the covariance between the liter size and growth. 
+
+```{r both}
+growth_size_model <- lmer(
+  std_Growt ~ 
+    bucket * std_LS + cones_tm1 * std_LS +  spr_density * std_LS + 
+    age * std_LS + I(age^2) * std_LS +  spr_density * cones_tm1 +  spr_density * bucket +  
+    (1 | grid) +  (1 | year) +  (1 | squirrel_id), 
+  data = litter)
+
+summary(growth_size_model)
+```
+
+
+
