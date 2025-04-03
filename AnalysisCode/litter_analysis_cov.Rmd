@@ -1,0 +1,49 @@
+---
+title: "rattle_analysis"
+author: "Erica Griffin"
+date: "2025-04-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(nlme)
+library(lme4)
+litter_2 <- read.csv("~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis_cov.csv")
+
+#Date prep: 
+## create new variable detailing whether or not playbacks were heard (JO vs BT, KL, SU) - ask Ben what to do with LL, CH, and AG 
+litter_playback <- litter_2 %>%
+  mutate(playback = case_when(
+    grid == "JO" ~ "Y", 
+    grid %in% c("BT", "KL", "SU", "LL", "CH", "AG") ~ "N",  
+    TRUE ~ NA_character_))
+```
+
+## Analysis to be conducted: 
+1.	2018-2020 data from JO (rattle playbacks) vs. controls (BT, KL, SU) to assess social cues of density on co-variance between litter size and offspring growth. Fixed effects include conestm-1, local density, playbacks heard, female age, female age^2, grid, local density x conestm1, playbacks heard x conestm1. Random effects: Grid/Year/Female/Litter. Not including part date as it is inconsistently available.
+```{r }
+model1 <- lme(
+  fixed = cbind(std_Growt, std_LS) ~ 
+    cones_tm1 + spr_density + playback + age + I(age^2) +
+    spr_density * cones_tm1 + playback * cones_tm1,
+  random = ~ 1 | grid/year/squirrel_id/litter_id,
+  data = litter_playback  
+)
+summary(model1)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+model2 <- lmer(covariance ~ cones_tm1 + spr_density + playback + age + I(age^2) + 
+    spr_density * cones_tm1 + playback * cones_tm1 + 
+                (1 | grid) + (1 | year) + (1 | squirrel_id), 
+    data = litter_playback)
+summary(model2)
+```
+
+
