@@ -1,0 +1,45 @@
+---
+title: "food_analysis2"
+author: "Erica Griffin"
+date: "2025-03-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(nlme)
+library(lme4)
+litter_2 <- read.csv("~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis_cov.csv")
+
+# Data Prep Steps
+
+#keep only obs for KL and SU 
+filtered_litter <- litter_2 %>%
+  filter(grid %in% c("KL", "SU"))
+
+```
+
+## Analysis to be conducted: 
+2.	All long-term data from KL/SU to assess impact of hoarded cones on co-variance between litter size and offspring growth. Fixed effects include conestm-1, local density, female age, female age^2, grid, local density x conestm1. Random effects: Grid/Year/Female/Litter. Not including part date as it is inconsistently available.
+
+```{r}
+model1 <- lme(
+  fixed = cbind(std_Growt, std_LS) ~ 
+    cones_tm1 + spr_density + age + I(age^2) +
+    spr_density * cones_tm1,
+  random = ~ 1 | grid/year/squirrel_id/litter_id,
+  data = filtered_litter  
+)
+summary(model1)
+```
+
+
+
+```{r}
+model2 <- lmer(covariance ~ cones_tm1 + spr_density + age + I(age^2) + 
+    spr_density * cones_tm1 + 
+                (1 | grid) + (1 | year) + (1 | squirrel_id), 
+    data = filtered_litter)
+summary(model2)
+```
