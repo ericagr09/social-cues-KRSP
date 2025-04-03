@@ -13,11 +13,21 @@ knitr::opts_chunk$set(echo = TRUE)
 #### All long-term data from KL/SU and AG/LL/JO to assess impacts of food (previous year tree cones, feeder bucket access) on co-variance between litter size and offspring growth. Fixed effects include access to bucket (yes or no), conestm-1, local density, female age, female age^2, local density x conestm1, local density x bucket access. Random effects: Grid/Year/Female/Litter. 
 
 ```{r prep}
-library(lme4)
+library(nlme)
 litter <- read.csv("~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis.csv")
+
+# add cov to data frame 
+litter_clean <- na.omit(litter)
+covariances <- numeric(nrow(litter_clean))
+# Calculate covariance for each individual observation
+for (i in 1:nrow(litter_clean)) {
+  covariances[i] <- cov(litter_clean$std_Growt[1:i], litter_clean$std_LS[1:i], use = "complete.obs")
+}
+litter_clean$covariance <- covariances
+write.csv(litter_clean, "~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis_cov.csv")
 ```
 
-First, I want to start by running models that assess offspring growth and litter size independetly of each other, rather than looking at the covariance between the two. 
+First, I want to start by running models that assess offspring growth and litter size independently of each other, rather than looking at the covariance between the two. 
 
 ```{r growth}
 growth_model <- lmer(std_Growt ~ 
@@ -37,18 +47,29 @@ size_model <- lmer(std_LS ~
 summary(size_model)
 ```
 
-Now, using a  model to look at the effect on the covariance between the liter size and growth. 
+Next, I will use cbind to to model the impacts the predictors have on the covariance.  
 
 ```{r both}
-growth_size_model <- lmer(
-  std_Growt ~ 
-    bucket * std_LS + cones_tm1 * std_LS +  spr_density * std_LS + 
-    age * std_LS + I(age^2) * std_LS +  spr_density * cones_tm1 +  spr_density * bucket +  
-    (1 | grid) +  (1 | year) +  (1 | squirrel_id), 
-  data = litter)
-
-summary(growth_size_model)
+library(nlme)
+growth_litter_model <- lme(
+  fixed = cbind(std_Growt, std_LS) ~ 
+    bucket + cones_tm1 + spr_density + age + I(age^2) +
+    spr_density * cones_tm1 + spr_density * bucket,
+  random = ~ 1 | grid/year/squirrel_id/litter_id,
+  data = litter_clean  
+)
+summary(growth_litter_model)
 ```
 
+Here, I use the variable I calculated that is the co-variance between each of the variables for each observation: 
+
+```{r modelboth}
+cov_model <- lmer(covariance ~ 
+    bucket + cones_tm1 + spr_density + age + I(age^2) +
+    spr_density * cones_tm1 + spr_density * bucket + 
+                (1 | grid) + (1 | year) + (1 | squirrel_id), data = litter_clean
+)
+summary(cov_model)
+```
 
 
