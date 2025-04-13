@@ -1,0 +1,152 @@
+---
+title: "SBN-analysis"
+author: "Erica Griffin"
+date: "2025-04-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(nlme)
+library(MASS)
+install.packages("lmerTest")
+library(lmerTest)
+library(ggplot2)
+# create new variable for mast vs non-mast years 
+cort <- read.csv("~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/SBNData/cort_analysis.csv")
+cort <- cort %>%
+  mutate(mast = if_else(year %in% c(2022, 2019, 2014, 2010, 2005, 1998, 1993), "y", "n"))
+```
+
+## Analysis to be run: First – what is the actual co-variance between offspring growth and number?, Does it differ between mast / non-mast?, What about density conditions?
+
+```{r}
+# base co-variance
+base_cov <- cov(cort$std_Growt, cort$std_LS)
+print(base_cov)
+base_matrix <- cov(cort[, c("std_Growt", "std_LS")])
+# mast co-variance 
+mast <- subset(cort, mast == "y")
+mast_cov <- cov(mast$std_Growt, mast$std_LS)
+print(mast_cov)
+# non-mast co-variance 
+mast_no <- subset(cort, mast == "n")
+mast_no_cov <- cov(mast_no$std_Growt, mast_no$std_LS)
+print(mast_no_cov)
+## First looking at spring density
+summary(cort$spr_density) # mean is 2.3, with a min of 0.52 and a max of 4.7 - think that everything below the mean will be low density, and everything above will be high?
+
+# high density co-variance 
+high_dens <- subset(cort, spr_density > 2.3)
+high_cov <- cov(high_dens$std_Growt, high_dens$std_LS)
+print(high_cov)
+# low density co-variance 
+low_dens <- subset(cort, spr_density < 2.3)
+low_cov <- cov(low_dens$std_Growt, low_dens$std_LS)
+print(low_cov)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(RColorBrewer)
+
+# Calculate covariance for each group
+cov_overall <- cov(cort$std_Growt, cort$std_LS)
+cov_mast <- cov(subset(cort, mast == "y")$std_Growt, subset(cort, mast == "y")$std_LS)
+cov_non_mast <- cov(subset(cort, mast == "n")$std_Growt, subset(cort, mast == "n")$std_LS)
+cov_high_density <- cov(subset(cort, spr_density > 2.3)$std_Growt, subset(cort, spr_density > 2.3)$std_LS)
+cov_low_density <- cov(subset(cort, spr_density < 2.3)$std_Growt, subset(cort, spr_density < 2.3)$std_LS)
+
+# Create a data frame for the covariances
+cov_values <- data.frame(
+  Group = c("Overall", "Mast", "Non-Mast"),
+  Covariance = c(cov_overall, cov_mast, cov_non_mast)
+)
+
+# Add a grouping variable to the original data
+cort_grouped <- cort %>%
+  mutate(Group = case_when(
+    mast == "y" ~ "Mast",
+    mast == "n" ~ "Non-Mast",
+    TRUE ~ "Other"
+  ))
+
+# For simplicity, add 'Overall' as a duplicate of the whole dataset
+cort_all <- cort %>%
+  mutate(Group = "Overall")
+
+# Combine all data
+cort_combined <- bind_rows(cort_all, cort_grouped)
+
+# Define color palette for colorblind-friendly options (Set1 is colorblind-friendly)
+cb_palette <- c("#E69F00", "#56B4E9", "#009E73")  # Adding green (#009E73) as the third color
+
+# Plot with facets and annotations for covariance values
+ggplot(cort_combined, aes(x = std_Growt, y = std_LS, color = Group)) +
+  geom_point(alpha = 0.7) +  # Scatter plot points
+  facet_wrap(~ Group) +
+  scale_color_manual(values = cb_palette) + 
+    geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "solid") +  # Trend lines
+# Apply color palette
+  labs(title = "Scatter Plots of std_Growt vs. std_LS by Group",
+       x = "Standardized Growth",
+       y = "Standardized Litter Size") +
+  theme_minimal() +
+  # Annotate covariance on each plot
+  geom_text(data = cov_values, aes(x = Inf, y = Inf, label = paste("Covariance: ", round(Covariance, 2))),
+            hjust = 1.1, vjust = 1.1, size = 4, inherit.aes = FALSE)
+
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(RColorBrewer)
+
+# Create a new grouping for 'mast' to color points differently
+cort_grouped <- cort %>%
+  mutate(Mast_Group = ifelse(mast == "y", "Mast", "Non-Mast"))
+
+# Define color palette for colorblind-friendly options (Set1 is colorblind-friendly)
+cb_palette <- c("#E69F00", "#56B4E9")  # Color Universal Design (CUD) colors (Mast, Non-Mast)
+
+# Plot all data on one graph with color-coded points based on 'mast'
+ggplot(cort_grouped, aes(x = std_Growt, y = std_LS, color = Mast_Group)) +
+  geom_point(alpha = 0.7) +  # Scatter plot points
+  geom_smooth(aes(color = Mast_Group), method = "lm", se = FALSE, linetype = "solid") +  # Trend lines for each group
+  scale_color_manual(values = cb_palette) +  # Apply color palette
+  labs(title = "Scatter Plot of std_Growt vs. std_LS by Mast/Non-Mast",
+       x = "Standardized Growth",
+       y = "Standardized Litter Size") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+```
+## Analysis to be run: Are GCs one mechanism within which moms are minimizing this trade-off?, Looking at how fecal cort changes this variance, Is this mediated by density?
+
+
+### First with int model 
+```{r}
+cort1 <- lmer(std_Growt ~ 
+              pre_cort*std_LS + lac_cort*std_LS + age + I(age^2) + 
+              (1 | grid) + (1 | year) , 
+             data = cort)
+summary(cort1)
+```
+### add density / food ? 
+```{r}
+```
+
+### Next using covariance value
+
+```{r}
+cort2 <- lmer(covariance ~ 
+              pre_cort + lac_cort + age + I(age^2) + 
+              (1 | grid) + (1 | year) , 
+             data = cort)
+summary(cort2)
+```
+
+
+
