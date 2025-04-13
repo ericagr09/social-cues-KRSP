@@ -23,5 +23,15 @@ for (i in 1:nrow(litter_clean)) {
   covariances[i] <- cov(litter_clean$std_Growt[1:i], litter_clean$std_LS[1:i], use = "complete.obs")
 }
 litter_clean$covariance <- covariances
-write.csv(litter_clean, "~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis_cov.csv")
+
+# create grid_year variable 
+litter_clean1 <- litter_clean %>%
+  mutate(grid_year = paste(grid, year, sep = "_"))
+
+litter_clean2 <- litter_clean1 %>%
+  group_by(grid_year) %>%
+  mutate(scaled_part_date = scale(part_date)) %>%
+  ungroup()
+
+write.csv(litter_clean2, "~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis_cov.csv")
 
