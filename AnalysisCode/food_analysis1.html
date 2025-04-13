@@ -376,233 +376,57 @@ Grid/Year/Female/Litter.</h4>
 <pre><code>## The following object is masked from &#39;package:nlme&#39;:
 ## 
 ##     lmList</code></pre>
-<pre class="r"><code>litter &lt;- read.csv(&quot;~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis.csv&quot;)
-
-# add cov to data frame 
-litter_clean &lt;- na.omit(litter)
-covariances &lt;- numeric(nrow(litter_clean))
-# Calculate covariance for each individual observation
-for (i in 1:nrow(litter_clean)) {
-  covariances[i] &lt;- cov(litter_clean$std_Growt[1:i], litter_clean$std_LS[1:i], use = &quot;complete.obs&quot;)
-}
-litter_clean$covariance &lt;- covariances
-write.csv(litter_clean, &quot;~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis_cov.csv&quot;)</code></pre>
-<p>First, I want to start by running models that assess offspring growth
-and litter size independently of each other, rather than looking at the
-covariance between the two.</p>
-<pre class="r"><code>growth_model &lt;- lmer(std_Growt ~ 
-              bucket + cones_tm1 + spr_density + age + I(age^2) + 
-              spr_density*cones_tm1 + spr_density*bucket + 
-              (1 | grid) + (1 | year) + (1 | squirrel_id), 
-             data = litter)</code></pre>
-<pre><code>## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
-<pre class="r"><code>summary(growth_model)</code></pre>
-<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
-## Formula: std_Growt ~ bucket + cones_tm1 + spr_density + age + I(age^2) +  
-##     spr_density * cones_tm1 + spr_density * bucket + (1 | grid) +  
-##     (1 | year) + (1 | squirrel_id)
-##    Data: litter
-## 
-## REML criterion at convergence: 5428.9
-## 
-## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -4.5173 -0.6104 -0.0290  0.5955  3.5482 
-## 
-## Random effects:
-##  Groups      Name        Variance  Std.Dev. 
-##  squirrel_id (Intercept) 1.157e-01 3.401e-01
-##  year        (Intercept) 0.000e+00 0.000e+00
-##  grid        (Intercept) 5.878e-10 2.424e-05
-##  Residual                8.296e-01 9.108e-01
-## Number of obs: 1944, groups:  squirrel_id, 1143; year, 35; grid, 6
-## 
-## Fixed effects:
-##                        Estimate Std. Error t value
-## (Intercept)           -0.148566   0.131393  -1.131
-## bucket                -0.071158   0.217988  -0.326
-## cones_tm1             -0.004990   0.037483  -0.133
-## spr_density           -0.055204   0.048585  -1.136
-## age                    0.155962   0.058220   2.679
-## I(age^2)              -0.024529   0.008641  -2.839
-## cones_tm1:spr_density  0.011194   0.014535   0.770
-## bucket:spr_density     0.080030   0.080680   0.992
-## 
-## Correlation of Fixed Effects:
-##             (Intr) bucket cns_t1 spr_dn age    I(g^2) cn_1:_
-## bucket      -0.278                                          
-## cones_tm1   -0.628  0.189                                   
-## spr_density -0.678  0.270  0.657                            
-## age         -0.586  0.016  0.031 -0.074                     
-## I(age^2)     0.529  0.007 -0.032  0.048 -0.962              
-## cns_tm1:sp_  0.599 -0.178 -0.915 -0.810  0.040 -0.024       
-## bckt:spr_dn  0.298 -0.958 -0.215 -0.389  0.010 -0.020  0.256
-## optimizer (nloptwrap) convergence code: 0 (OK)
-## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
-<pre class="r"><code>size_model &lt;- lmer(std_LS ~ 
-                bucket + cones_tm1 + spr_density + age + I(age^2) + 
-                spr_density*cones_tm1 + spr_density*bucket + 
-                (1 | grid) + (1 | year) + (1 | squirrel_id), # need to add in litter_id once I fix the errors 
-              data = litter)</code></pre>
-<pre><code>## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
-<pre class="r"><code>summary(size_model)</code></pre>
-<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
-## Formula: std_LS ~ bucket + cones_tm1 + spr_density + age + I(age^2) +  
-##     spr_density * cones_tm1 + spr_density * bucket + (1 | grid) +  
-##     (1 | year) + (1 | squirrel_id)
-##    Data: litter
-## 
-## REML criterion at convergence: 8458.9
-## 
-## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -3.4116 -0.5222  0.0778  0.6169  3.9852 
-## 
-## Random effects:
-##  Groups      Name        Variance Std.Dev.
-##  squirrel_id (Intercept) 0.1719   0.4147  
-##  year        (Intercept) 0.0000   0.0000  
-##  grid        (Intercept) 0.0000   0.0000  
-##  Residual                0.7778   0.8819  
-## Number of obs: 3049, groups:  squirrel_id, 1486; year, 35; grid, 6
-## 
-## Fixed effects:
-##                         Estimate Std. Error t value
-## (Intercept)           -4.396e-01  1.030e-01  -4.270
-## bucket                 1.057e-01  1.864e-01   0.567
-## cones_tm1             -1.978e-05  2.795e-02  -0.001
-## spr_density           -4.684e-02  4.046e-02  -1.158
-## age                    3.272e-01  4.433e-02   7.382
-## I(age^2)              -4.251e-02  6.587e-03  -6.454
-## cones_tm1:spr_density  9.089e-03  1.141e-02   0.796
-## bucket:spr_density    -2.868e-03  6.960e-02  -0.041
-## 
-## Correlation of Fixed Effects:
-##             (Intr) bucket cns_t1 spr_dn age    I(g^2) cn_1:_
-## bucket      -0.267                                          
-## cones_tm1   -0.625  0.179                                   
-## spr_density -0.698  0.258  0.649                            
-## age         -0.569  0.020  0.022 -0.062                     
-## I(age^2)     0.512 -0.003 -0.017  0.038 -0.960              
-## cns_tm1:sp_  0.606 -0.176 -0.907 -0.817  0.049 -0.038       
-## bckt:spr_dn  0.298 -0.958 -0.214 -0.382  0.001 -0.008  0.265
-## optimizer (nloptwrap) convergence code: 0 (OK)
-## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
-<p>Next, I will use cbind to to model the impacts the predictors have on
-the covariance.</p>
-<pre class="r"><code>library(nlme)
-growth_litter_model &lt;- lme(
-  fixed = cbind(std_Growt, std_LS) ~ 
-    bucket + cones_tm1 + spr_density + age + I(age^2) +
-    spr_density * cones_tm1 + spr_density * bucket,
-  random = ~ 1 | grid/year/squirrel_id/litter_id,
-  data = litter_clean  
-)
-summary(growth_litter_model)</code></pre>
-<pre><code>## Linear mixed-effects model fit by REML
-##   Data: litter_clean 
-##        AIC      BIC    logLik
-##   5461.759 5534.114 -2717.879
-## 
-## Random effects:
-##  Formula: ~1 | grid
-##          (Intercept)
-## StdDev: 9.523776e-06
-## 
-##  Formula: ~1 | year %in% grid
-##          (Intercept)
-## StdDev: 2.794448e-05
-## 
-##  Formula: ~1 | squirrel_id %in% year %in% grid
-##         (Intercept)
-## StdDev:   0.6889362
-## 
-##  Formula: ~1 | litter_id %in% squirrel_id %in% year %in% grid
-##         (Intercept)    Residual
-## StdDev:   0.6875332 0.005558529
-## 
-## Fixed effects:  cbind(std_Growt, std_LS) ~ bucket + cones_tm1 + spr_density +      age + I(age^2) + spr_density * cones_tm1 + spr_density *      bucket 
-##                             Value  Std.Error   DF    t-value p-value
-## (Intercept)           -0.11662858 0.13180852 1837 -0.8848334  0.3764
-## bucket                -0.03037498 0.21734000 1837 -0.1397579  0.8889
-## cones_tm1             -0.00735172 0.03811036   89 -0.1929061  0.8475
-## spr_density           -0.05792598 0.04819839   89 -1.2018240  0.2326
-## age                    0.13622555 0.05914044 1837  2.3034249  0.0214
-## I(age^2)              -0.02023500 0.00875288 1837 -2.3118114  0.0209
-## cones_tm1:spr_density  0.01107269 0.01475549   89  0.7504116  0.4550
-## bucket:spr_density     0.06372140 0.08077931 1837  0.7888332  0.4303
-##  Correlation: 
-##                       (Intr) bucket cns_t1 spr_dn age    I(g^2) cn_1:_
-## bucket                -0.274                                          
-## cones_tm1             -0.632  0.192                                   
-## spr_density           -0.670  0.274  0.665                            
-## age                   -0.594  0.009  0.031 -0.078                     
-## I(age^2)               0.535  0.012 -0.029  0.054 -0.964              
-## cones_tm1:spr_density  0.596 -0.180 -0.916 -0.814  0.040 -0.026       
-## bucket:spr_density     0.293 -0.960 -0.217 -0.393  0.017 -0.026  0.256
-## 
-## Standardized Within-Group Residuals:
-##           Min            Q1           Med            Q3           Max 
-## -0.0250418822 -0.0035583003 -0.0002378518  0.0035054103  0.0226344138 
-## 
-## Number of Observations: 1939
-## Number of Groups: 
-##                                           grid 
-##                                              6 
-##                                 year %in% grid 
-##                                             98 
-##                squirrel_id %in% year %in% grid 
-##                                           1939 
-## litter_id %in% squirrel_id %in% year %in% grid 
-##                                           1939</code></pre>
+<pre class="r"><code>litter &lt;- read.csv(&quot;~/University of Michigan Dropbox/Erica Griffin/Erica Griffin - shared folder/W25 social cue analysis/social-cues-KRSP/AnalysisData/litter_analysis_cov.csv&quot;)</code></pre>
 <p>Here, I use the variable I calculated that is the co-variance between
 each of the variables for each observation:</p>
 <pre class="r"><code>cov_model &lt;- lmer(covariance ~ 
     bucket + cones_tm1 + spr_density + age + I(age^2) +
-    spr_density * cones_tm1 + spr_density * bucket + 
-                (1 | grid) + (1 | year) + (1 | squirrel_id), data = litter_clean
+    spr_density * cones_tm1 + spr_density * bucket + scaled_part_date + 
+                (1 | grid) + (1 | year) + (1 | squirrel_id), data = litter
 )
 summary(cov_model)</code></pre>
 <pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
 ## Formula: covariance ~ bucket + cones_tm1 + spr_density + age + I(age^2) +  
-##     spr_density * cones_tm1 + spr_density * bucket + (1 | grid) +  
-##     (1 | year) + (1 | squirrel_id)
-##    Data: litter_clean
+##     spr_density * cones_tm1 + spr_density * bucket + scaled_part_date +  
+##     (1 | grid) + (1 | year) + (1 | squirrel_id)
+##    Data: litter
 ## 
-## REML criterion at convergence: -7147.4
+## REML criterion at convergence: -7135
 ## 
 ## Scaled residuals: 
 ##      Min       1Q   Median       3Q      Max 
-## -17.1764  -0.1175  -0.0185   0.0619  18.2936 
+## -17.0370  -0.1182  -0.0216   0.0644  18.1604 
 ## 
 ## Random effects:
 ##  Groups      Name        Variance  Std.Dev.
-##  squirrel_id (Intercept) 2.304e-03 0.047995
-##  year        (Intercept) 5.285e-06 0.002299
-##  grid        (Intercept) 1.310e-05 0.003619
-##  Residual                3.291e-04 0.018140
-## Number of obs: 1938, groups:  squirrel_id, 1138; year, 35; grid, 6
+##  squirrel_id (Intercept) 2.133e-03 0.046188
+##  year        (Intercept) 1.409e-05 0.003753
+##  grid        (Intercept) 1.402e-05 0.003744
+##  Residual                3.339e-04 0.018274
+## Number of obs: 1925, groups:  squirrel_id, 1134; year, 35; grid, 6
 ## 
 ## Fixed effects:
 ##                         Estimate Std. Error t value
-## (Intercept)           -2.886e-01  5.070e-03 -56.923
-## bucket                -6.451e-03  7.690e-03  -0.839
-## cones_tm1             -5.818e-04  1.168e-03  -0.498
-## spr_density            1.769e-03  1.914e-03   0.924
-## age                    2.863e-03  1.578e-03   1.814
-## I(age^2)              -4.445e-04  2.253e-04  -1.973
-## cones_tm1:spr_density  9.884e-05  4.724e-04   0.209
-## bucket:spr_density     2.581e-03  2.643e-03   0.976
+## (Intercept)           -2.806e-01  5.473e-03 -51.265
+## bucket                -6.152e-03  8.084e-03  -0.761
+## cones_tm1             -7.305e-04  1.288e-03  -0.567
+## spr_density            2.056e-03  2.104e-03   0.977
+## age                    2.357e-03  1.761e-03   1.339
+## I(age^2)              -4.004e-04  2.460e-04  -1.628
+## scaled_part_date      -2.317e-04  7.321e-04  -0.317
+## cones_tm1:spr_density  7.136e-05  5.338e-04   0.134
+## bucket:spr_density     2.510e-03  2.777e-03   0.904
 ## 
 ## Correlation of Fixed Effects:
-##             (Intr) bucket cns_t1 spr_dn age    I(g^2) cn_1:_
-## bucket      -0.320                                          
-## cones_tm1   -0.527  0.140                                   
-## spr_density -0.723  0.283  0.572                            
-## age         -0.382  0.011  0.000 -0.083                     
-## I(age^2)     0.354  0.021 -0.019  0.049 -0.955              
-## cns_tm1:sp_  0.567 -0.144 -0.898 -0.768  0.056 -0.027       
-## bckt:spr_dn  0.323 -0.949 -0.179 -0.360 -0.007 -0.019  0.226</code></pre>
+##             (Intr) bucket cns_t1 spr_dn age    I(g^2) scld__ cn_1:_
+## bucket      -0.286                                                 
+## cones_tm1   -0.507  0.106                                          
+## spr_density -0.708  0.242  0.548                                   
+## age         -0.400 -0.004 -0.010 -0.106                            
+## I(age^2)     0.371  0.031 -0.005  0.075 -0.959                     
+## scld_prt_dt -0.174 -0.023 -0.025 -0.074  0.390 -0.339              
+## cns_tm1:sp_  0.530 -0.093 -0.883 -0.750  0.082 -0.056  0.075       
+## bckt:spr_dn  0.288 -0.950 -0.152 -0.328  0.029 -0.049  0.073  0.184</code></pre>
 </div>
 </div>
 

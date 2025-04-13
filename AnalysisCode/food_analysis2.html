@@ -366,107 +366,50 @@ include conestm-1, local density, female age, female age^2, grid, local
 density x conestm1. Random effects: Grid/Year/Female/Litter. Not
 including part date as it is inconsistently available.</li>
 </ol>
-<pre class="r"><code>model1 &lt;- lme(
-  fixed = cbind(std_Growt, std_LS) ~ 
-    cones_tm1 + spr_density + age + I(age^2) +
-    spr_density * cones_tm1,
-  random = ~ 1 | grid/year/squirrel_id/litter_id,
-  data = filtered_litter  
-)
-summary(model1)</code></pre>
-<pre><code>## Linear mixed-effects model fit by REML
-##   Data: filtered_litter 
-##        AIC     BIC    logLik
-##   3345.033 3400.83 -1661.516
-## 
-## Random effects:
-##  Formula: ~1 | grid
-##          (Intercept)
-## StdDev: 4.259358e-05
-## 
-##  Formula: ~1 | year %in% grid
-##          (Intercept)
-## StdDev: 7.534405e-06
-## 
-##  Formula: ~1 | squirrel_id %in% year %in% grid
-##         (Intercept)
-## StdDev:   0.6820185
-## 
-##  Formula: ~1 | litter_id %in% squirrel_id %in% year %in% grid
-##         (Intercept)    Residual
-## StdDev:   0.6912453 0.006839805
-## 
-## Fixed effects:  cbind(std_Growt, std_LS) ~ cones_tm1 + spr_density + age + I(age^2) +      spr_density * cones_tm1 
-##                             Value  Std.Error   DF    t-value p-value
-## (Intercept)           -0.02074739 0.16432370 1114 -0.1262592  0.8995
-## cones_tm1             -0.00055108 0.04383374   64 -0.0125720  0.9900
-## spr_density            0.00199631 0.07255003   64  0.0275164  0.9781
-## age                    0.05732074 0.07572289 1114  0.7569803  0.4492
-## I(age^2)              -0.01433994 0.01099273 1114 -1.3044929  0.1923
-## cones_tm1:spr_density  0.00002693 0.01938398   64  0.0013894  0.9989
-##  Correlation: 
-##                       (Intr) cns_t1 spr_dn age    I(g^2)
-## cones_tm1             -0.625                            
-## spr_density           -0.662  0.675                     
-## age                   -0.564 -0.020 -0.152              
-## I(age^2)               0.511  0.019  0.130 -0.966       
-## cones_tm1:spr_density  0.606 -0.911 -0.845  0.112 -0.098
-## 
-## Standardized Within-Group Residuals:
-##           Min            Q1           Med            Q3           Max 
-## -0.0229407533 -0.0044660157 -0.0004546286  0.0043239966  0.0287624296 
-## 
-## Number of Observations: 1185
-## Number of Groups: 
-##                                           grid 
-##                                              2 
-##                                 year %in% grid 
-##                                             69 
-##                squirrel_id %in% year %in% grid 
-##                                           1185 
-## litter_id %in% squirrel_id %in% year %in% grid 
-##                                           1185</code></pre>
 <pre class="r"><code>model2 &lt;- lmer(covariance ~ cones_tm1 + spr_density + age + I(age^2) + 
-    spr_density * cones_tm1 + 
+    spr_density * cones_tm1 + scaled_part_date + 
                 (1 | grid) + (1 | year) + (1 | squirrel_id), 
     data = filtered_litter)</code></pre>
 <pre><code>## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
 <pre class="r"><code>summary(model2)</code></pre>
 <pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
 ## Formula: covariance ~ cones_tm1 + spr_density + age + I(age^2) + spr_density *  
-##     cones_tm1 + (1 | grid) + (1 | year) + (1 | squirrel_id)
+##     cones_tm1 + scaled_part_date + (1 | grid) + (1 | year) +  
+##     (1 | squirrel_id)
 ##    Data: filtered_litter
 ## 
-## REML criterion at convergence: -5956.8
+## REML criterion at convergence: -5943.8
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -7.9123 -0.1170 -0.0014  0.0801  8.0419 
+## -8.1239 -0.1109  0.0006  0.0854  8.1570 
 ## 
 ## Random effects:
-##  Groups      Name        Variance  Std.Dev. 
-##  squirrel_id (Intercept) 1.822e-03 0.0426843
-##  year        (Intercept) 8.398e-07 0.0009164
-##  grid        (Intercept) 0.000e+00 0.0000000
-##  Residual                2.168e-05 0.0046565
-## Number of obs: 1185, groups:  squirrel_id, 680; year, 35; grid, 2
+##  Groups      Name        Variance  Std.Dev.
+##  squirrel_id (Intercept) 1.722e-03 0.041499
+##  year        (Intercept) 1.044e-06 0.001022
+##  grid        (Intercept) 0.000e+00 0.000000
+##  Residual                2.113e-05 0.004597
+## Number of obs: 1177, groups:  squirrel_id, 677; year, 35; grid, 2
 ## 
 ## Fixed effects:
 ##                         Estimate Std. Error  t value
-## (Intercept)           -2.842e-01  2.205e-03 -128.897
-## cones_tm1             -2.762e-05  4.059e-04   -0.068
-## spr_density           -7.126e-04  7.647e-04   -0.932
-## age                    1.560e-03  5.408e-04    2.885
-## I(age^2)              -3.212e-04  7.511e-05   -4.276
-## cones_tm1:spr_density  6.432e-05  1.835e-04    0.351
+## (Intercept)           -2.776e-01  2.223e-03 -124.869
+## cones_tm1             -7.131e-05  4.181e-04   -0.171
+## spr_density           -8.385e-04  7.855e-04   -1.067
+## age                    1.417e-03  5.850e-04    2.423
+## I(age^2)              -2.916e-04  7.972e-05   -3.658
+## scaled_part_date      -9.812e-06  2.418e-04   -0.041
+## cones_tm1:spr_density  8.566e-05  1.895e-04    0.452
 ## 
 ## Correlation of Fixed Effects:
-##             (Intr) cns_t1 spr_dn age    I(g^2)
-## cones_tm1   -0.407                            
-## spr_density -0.526  0.583                     
-## age         -0.279 -0.071 -0.150              
-## I(age^2)     0.250  0.060  0.137 -0.959       
-## cns_tm1:sp_  0.439 -0.899 -0.788  0.140 -0.127
+##             (Intr) cns_t1 spr_dn age    I(g^2) scld__
+## cones_tm1   -0.408                                   
+## spr_density -0.534  0.577                            
+## age         -0.316 -0.076 -0.142                     
+## I(age^2)     0.286  0.067  0.132 -0.964              
+## scld_prt_dt -0.165 -0.017 -0.010  0.388 -0.346       
+## cns_tm1:sp_  0.438 -0.897 -0.784  0.144 -0.133  0.035
 ## optimizer (nloptwrap) convergence code: 0 (OK)
 ## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
 </div>

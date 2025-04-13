@@ -368,119 +368,53 @@ conestm1, playbacks heard x conestm1. Random effects:
 Grid/Year/Female/Litter. Not including part date as it is inconsistently
 available.</li>
 </ol>
-<pre class="r"><code>model1 &lt;- lme(
-  fixed = cbind(std_Growt, std_LS) ~ 
-    cones_tm1 + spr_density + playback + age + I(age^2) +
-    spr_density * cones_tm1 + playback * cones_tm1,
-  random = ~ 1 | grid/year/squirrel_id/litter_id,
-  data = litter_playback  
-)
-summary(model1)</code></pre>
-<pre><code>## Linear mixed-effects model fit by REML
-##   Data: litter_playback 
-##        AIC      BIC    logLik
-##   5467.107 5539.463 -2720.554
-## 
-## Random effects:
-##  Formula: ~1 | grid
-##          (Intercept)
-## StdDev: 8.571279e-06
-## 
-##  Formula: ~1 | year %in% grid
-##          (Intercept)
-## StdDev: 2.767442e-05
-## 
-##  Formula: ~1 | squirrel_id %in% year %in% grid
-##         (Intercept)
-## StdDev:   0.6949235
-## 
-##  Formula: ~1 | litter_id %in% squirrel_id %in% year %in% grid
-##         (Intercept)    Residual
-## StdDev:   0.6834086 0.005501326
-## 
-## Fixed effects:  cbind(std_Growt, std_LS) ~ cones_tm1 + spr_density + playback +      age + I(age^2) + spr_density * cones_tm1 + playback * cones_tm1 
-##                             Value  Std.Error   DF    t-value p-value
-## (Intercept)           -0.15548732 0.12616413 1839 -1.2324210  0.2179
-## cones_tm1              0.00345978 0.03727405   88  0.0928202  0.9263
-## spr_density           -0.00251510 0.04110409   88 -0.0611887  0.9513
-## playbackY             -0.04091410 0.13230644    4 -0.3092374  0.7726
-## age                    0.12384935 0.05901197 1839  2.0987157  0.0360
-## I(age^2)              -0.01921255 0.00875404 1839 -2.1947071  0.0283
-## cones_tm1:spr_density  0.00007691 0.01390790   88  0.0055300  0.9956
-## cones_tm1:playbackY    0.02045066 0.05475668   88  0.3734825  0.7097
-##  Correlation: 
-##                       (Intr) cns_t1 spr_dn plybcY age    I(g^2) cn_1:_
-## cones_tm1             -0.606                                          
-## spr_density           -0.670  0.675                                   
-## playbackY              0.012  0.003 -0.136                            
-## age                   -0.631  0.038 -0.047  0.006                     
-## I(age^2)               0.569 -0.037  0.032  0.006 -0.964              
-## cones_tm1:spr_density  0.573 -0.922 -0.795  0.088  0.017 -0.009       
-## cones_tm1:playbackY   -0.013 -0.047  0.063 -0.732  0.023 -0.015 -0.052
-## 
-## Standardized Within-Group Residuals:
-##           Min            Q1           Med            Q3           Max 
-## -0.0248630295 -0.0035947233 -0.0002070106  0.0034471333  0.0224392036 
-## 
-## Number of Observations: 1939
-## Number of Groups: 
-##                                           grid 
-##                                              6 
-##                                 year %in% grid 
-##                                             98 
-##                squirrel_id %in% year %in% grid 
-##                                           1939 
-## litter_id %in% squirrel_id %in% year %in% grid 
-##                                           1939</code></pre>
-</div>
-<div id="including-plots" class="section level2">
-<h2>Including Plots</h2>
-<p>You can also embed plots, for example:</p>
 <pre class="r"><code>model2 &lt;- lmer(covariance ~ cones_tm1 + spr_density + playback + age + I(age^2) + 
-    spr_density * cones_tm1 + playback * cones_tm1 + 
+    spr_density * cones_tm1 + playback * cones_tm1 + scaled_part_date + 
                 (1 | grid) + (1 | year) + (1 | squirrel_id), 
     data = litter_playback)
 summary(model2)</code></pre>
 <pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
 ## Formula: covariance ~ cones_tm1 + spr_density + playback + age + I(age^2) +  
-##     spr_density * cones_tm1 + playback * cones_tm1 + (1 | grid) +  
-##     (1 | year) + (1 | squirrel_id)
+##     spr_density * cones_tm1 + playback * cones_tm1 + scaled_part_date +  
+##     (1 | grid) + (1 | year) + (1 | squirrel_id)
 ##    Data: litter_playback
 ## 
-## REML criterion at convergence: -7147.9
+## REML criterion at convergence: -7135.4
 ## 
 ## Scaled residuals: 
 ##      Min       1Q   Median       3Q      Max 
-## -17.1857  -0.1142  -0.0211   0.0628  18.2980 
+## -17.0412  -0.1160  -0.0225   0.0666  18.1602 
 ## 
 ## Random effects:
 ##  Groups      Name        Variance  Std.Dev.
-##  squirrel_id (Intercept) 2.307e-03 0.048027
-##  year        (Intercept) 4.533e-06 0.002129
-##  grid        (Intercept) 1.622e-05 0.004027
-##  Residual                3.291e-04 0.018141
-## Number of obs: 1938, groups:  squirrel_id, 1138; year, 35; grid, 6
+##  squirrel_id (Intercept) 2.132e-03 0.046172
+##  year        (Intercept) 1.431e-05 0.003782
+##  grid        (Intercept) 1.695e-05 0.004117
+##  Residual                3.342e-04 0.018282
+## Number of obs: 1925, groups:  squirrel_id, 1134; year, 35; grid, 6
 ## 
 ## Fixed effects:
 ##                         Estimate Std. Error t value
-## (Intercept)           -2.898e-01  4.895e-03 -59.196
-## cones_tm1             -3.276e-04  1.132e-03  -0.289
-## spr_density            2.336e-03  1.754e-03   1.332
-## playbackY              1.031e-03  8.130e-03   0.127
-## age                    2.856e-03  1.575e-03   1.813
-## I(age^2)              -4.376e-04  2.249e-04  -1.946
-## cones_tm1:spr_density -1.147e-06  4.438e-04  -0.003
-## cones_tm1:playbackY   -9.280e-04  1.615e-03  -0.575
+## (Intercept)           -0.2815754  0.0053703 -52.432
+## cones_tm1             -0.0005148  0.0012656  -0.407
+## spr_density            0.0025844  0.0019782   1.306
+## playbackY              0.0022539  0.0081387   0.277
+## age                    0.0022558  0.0017576   1.283
+## I(age^2)              -0.0003846  0.0002456  -1.566
+## scaled_part_date      -0.0003290  0.0007226  -0.455
+## cones_tm1:spr_density -0.0000163  0.0005124  -0.032
+## cones_tm1:playbackY   -0.0007960  0.0016742  -0.475
 ## 
 ## Correlation of Fixed Effects:
-##             (Intr) cns_t1 spr_dn plybcY age    I(g^2) cn_1:_
-## cones_tm1   -0.492                                          
-## spr_density -0.685  0.540                                   
-## playbackY   -0.100 -0.005 -0.115                            
-## age         -0.395 -0.001 -0.089  0.015                     
-## I(age^2)     0.375 -0.021  0.046 -0.009 -0.956              
-## cns_tm1:sp_  0.548 -0.895 -0.749  0.065  0.057 -0.025       
-## cns_tm1:plY -0.070 -0.034  0.128 -0.395  0.022 -0.013 -0.086</code></pre>
+##             (Intr) cns_t1 spr_dn plybcY age    I(g^2) scld__ cn_1:_
+## cones_tm1   -0.486                                                 
+## spr_density -0.691  0.513                                          
+## playbackY   -0.057 -0.018 -0.145                                   
+## age         -0.417  0.004 -0.085  0.010                            
+## I(age^2)     0.394 -0.019  0.051 -0.007 -0.959                     
+## scld_prt_dt -0.199  0.005 -0.011 -0.017  0.384 -0.333              
+## cns_tm1:sp_  0.531 -0.877 -0.731  0.087  0.057 -0.034  0.018       
+## cns_tm1:plY -0.095  0.000  0.161 -0.412  0.024 -0.016  0.039 -0.135</code></pre>
 </div>
 
 
